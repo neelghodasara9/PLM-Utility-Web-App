@@ -83,12 +83,17 @@ public class PlmController {
 				objMissingOffers.executeAudit(objConfig.getNcInputpath(), objConfig.getFutureWindow(), outFilePath+ "\\MISSING_OFFERS_FOR_ACTIVE_CAMPAIGNS_AUDIT-" + timeStamp + ".csv", tagMap);
 				mailBody.append("<br><br>Material impacts for Missing Offers Audit:<br><br>" + htmlMailBodyGenerator(materialImpactsForMail.get(objMissingOffers.getClass().getSimpleName()), objMissingOffers.getClass().getSimpleName()));
 				logger.info("Out of executeAudit() method.");
-				model.addAttribute(objMissingOffers.getClass().getSimpleName(), materialImpactsForMail.get(objMissingOffers.getClass().getSimpleName()));
+
 
 			}
 			else
 				logger.error("Cannot execute Missing offers audit, missing \"NORMALIZED_CAMPAIGN_INPUT_PATH\" key in resources/config file.");
 		}
+		model.addAttribute("MaterialImpacts", materialImpactsForMail);
+		model.addAttribute("Headers", csvFileHeaders);
+
+		if(!errorsLst.isEmpty())
+			mailBody.append("<br><br><br>Error/s encountered:<br><br>" + htmlMailBodyGenerator(errorsLst, "Errors"));
 
 		StringBuilder toEmail = new StringBuilder();
 		//email audit reports
@@ -124,9 +129,6 @@ public class PlmController {
 			Session session = Session.getDefaultInstance(props, auth);
 			logger.info("Session created");
 
-			if(!errorsLst.isEmpty())
-				mailBody.append("<br><br><br>Error/s encountered:<br><br>" + htmlMailBodyGenerator(errorsLst, "Errors"));
-
 
 			mailBody.append("<br><br>Regards, <br>Neel");
 			//if(fname.size()>0)
@@ -134,6 +136,7 @@ public class PlmController {
 
 		}
 		logger.info("\n\nExiting the utility now..");
+		model.addAttribute("MailBody", mailBody);
 
 		return "audit-results";
 	}
@@ -144,7 +147,7 @@ public class PlmController {
 
 		bodyText.append("<tr>");
 		for (String str : csvFileHeaders.get(auditName)) {
-			bodyText.append("<td><b>" + str + "<b></td>"); 
+			bodyText.append("<th><b>" + str + "<b></th>"); 
 		}
 		bodyText.append("</tr>");		
 

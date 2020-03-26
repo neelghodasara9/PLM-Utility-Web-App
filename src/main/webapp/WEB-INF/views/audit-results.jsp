@@ -31,35 +31,36 @@ th {
 <body>
 	<h1>PLM Audit Results</h1>
 	<hr>
-	
+	<br>
+	<br> ${MailBody }
 
-		<table width='100%' border='1' align='left'>
-			<thead>
-				<tr>
-					<th>DISCOUNT_ID</th>
-					<th>DISCOUNT_CODE</th>
-					<th>DESCRIPTION</th>
-					<th>TAG</th>
-					<th>DISCOUNT_START_DATE</th>
-					<th>DISCOUNT_END_DATE</th>
-					<th>needsOffers?</th>
-					<th>CNT</th>
-				</tr>
-			</thead>
+	<!--
+	<c:forEach var="auditName" items="${Headers}">
+		${auditName.key} <br>
+		<table border='1'>
+			<c:set var="temp" scope="application" value="${auditName.key}" />
 
-			<c:forEach items="${MissingOfferAudit}" var="item">
+			<tr>
+				<c:forEach var="data" items="${auditName.value}">
+					<th>${data}</th>
+				</c:forEach>
+			</tr>
+
+
+			<c:forEach var="row" items="${MaterialImpacts.IcomsPlmEndDateAudit}">
 				<tr>
-					<td>${item[0]}</td>
-					<td>${item[1]}</td>
-					<td>${item[2]}</td>
-					<td>${item[3]}</td>
-					<td>${item[4]}</td>
-					<td>${item[5]}</td>
-					<td>${item[6]}</td>
-					<td>${item[7]}</td>
+					<c:forEach var="item" items="${row}">
+						<td>${item}</td>
+					</c:forEach>
 				</tr>
 			</c:forEach>
 		</table>
+		<br>
+		<br>
+		<br>
+	</c:forEach>
+	!-->
+
 
 </body>
 </html>
