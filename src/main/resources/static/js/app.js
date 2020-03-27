@@ -10,9 +10,3 @@ function validate(){
 		return true;
 	}
 }
-
-function selectAll() {
-	var items = document.getElementsByName("runIcomsAudit");
-	items.checked = true;
-
-}

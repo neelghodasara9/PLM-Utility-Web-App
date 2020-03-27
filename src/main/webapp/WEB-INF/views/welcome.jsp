@@ -35,7 +35,7 @@
 				<legend>Audits to run?</legend>
 				<input type="checkbox" name="select-all" id="select-all"
 					onclick="selectAll()" /> <br>
-				<form:checkbox path="runIcomsAudit" name="runIcomsAudit" value="YES" />
+				<form:checkbox path="runIcomsAudit" name="runIcomsAudit" value="YES"/>
 				Icoms-Plm end date audit <br>
 				<form:checkbox path="runMissingOffersAudit" value="YES" />
 				Missing offers audit <br>

@@ -4,6 +4,7 @@ package com.java.plm.MyWebApp.controller;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.java.plm.MyWebApp.Service.SendMail;
 import com.java.plm.MyWebApp.model.ConfigInput;
+import com.java.plm.MyWebApp.model.Historylist;
 
 @Controller
 public class PlmController {
@@ -208,6 +210,8 @@ public class PlmController {
 
 		}
 		logger.info("\n\nExiting the utility now..");
+		
+
 		model.addAttribute("MailBody", mailBody);
 
 		return "audit-results";
