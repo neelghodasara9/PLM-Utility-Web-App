@@ -1,6 +1,7 @@
 package com.java.plm.MyWebApp.controller;
 
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import java.util.TreeMap;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
@@ -19,6 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.java.plm.MyWebApp.Service.SendMail;
 import com.java.plm.MyWebApp.model.ConfigInput;
@@ -51,11 +54,12 @@ public class PlmController {
 		mailBody.append("Hi, <br><br>Please find attached PLM Production Audit reports for " + timeStamp2 + ". It's set to capture all discrepancies from the past and " + objConfig.getFutureWindow() + " day/s in future. <br><br> <i>This is an auto generated email, please do not reply to this mail.</i><br><br>");
 		String outFilePath = System.getProperty("user.dir");
 
-		if(objConfig.getRunIcomsAudit().equals("YES")) {
+
+		if(objConfig.getRunIcomsAudit() != null) {
 			logger.info("\n\n------------------------------------------------------------------------------------\nICOMS End Date Compare Utility\n------------------------------------------------------------------------------------");
 			if(objConfig.getNcInputpath() != null) {
-				csvFileHeaders.put("IcomsPlmEndDateAudit", 	new String[] { "Site Id", "Site Code" , "Campaign Code","PLM Discount id", "PLM Start Date", "PLM End Date", "ICOMS Start Date", "ICOMS End Date", "Offer series", "Comments" } );
 				IcomsPlmEndDateAudit objIcomsDateComp = new IcomsPlmEndDateAudit();
+				csvFileHeaders.put(objIcomsDateComp.getClass().getSimpleName(), 	new String[] { "Site Id", "Site Code" , "Campaign Code","PLM Discount id", "PLM Start Date", "PLM End Date", "ICOMS Start Date", "ICOMS End Date", "Offer series", "Comments" } );
 
 				fname.add(outFilePath + "\\Icoms-Plm-EndDate-Audit-" + timeStamp + ".csv");
 				logger.info("Calling compareUtility() method...");
@@ -70,13 +74,12 @@ public class PlmController {
 		}	
 
 
-		if(objConfig.getRunMissingOffersAudit().equals("YES")) {
+		if(objConfig.getRunMissingOffersAudit() != null) {
 			logger.info("\n\n------------------------------------------------------------------------------------\nMISSING_OFFERS_AUDIT Utility\n------------------------------------------------------------------------------------");
 			if(objConfig.getNcInputpath() != null) {
 				MissingOfferAudit objMissingOffers = new MissingOfferAudit();
 
 				csvFileHeaders.put(objMissingOffers.getClass().getSimpleName(), 	new String[] { "DISCOUNT_ID", "DISCOUNT_CODE", "DESCRIPTION", "TAG", "DISCOUNT_START_DATE", "DISCOUNT_END_DATE", "needsOffers?", "CNT" });
-
 
 				fname.add(outFilePath+ "\\MISSING_OFFERS_FOR_ACTIVE_CAMPAIGNS_AUDIT-" + timeStamp + ".csv");
 				logger.info("Calling executeAudit() method...");
@@ -89,15 +92,84 @@ public class PlmController {
 			else
 				logger.error("Cannot execute Missing offers audit, missing \"NORMALIZED_CAMPAIGN_INPUT_PATH\" key in resources/config file.");
 		}
-		model.addAttribute("MaterialImpacts", materialImpactsForMail);
-		model.addAttribute("Headers", csvFileHeaders);
+
+
+		if(objConfig.getRunNormalizedCampAudit() != null) {
+			logger.info("\n\n------------------------------------------------------------------------------------\nNormalized Campaign Audit Utility\n------------------------------------------------------------------------------------");
+			if(objConfig.getNcInputpath() != null) {
+				NormalizedCampaignAudit objNormalizedCamp = new NormalizedCampaignAudit();
+				csvFileHeaders.put(objNormalizedCamp.getClass().getSimpleName(), new String[] { "DISCOUNT_ID", "DISCOUNT_CODE", "NEEDS_OFFER?", "INTENT-csv", "INTENT-db", "AGENTTYPE-csv", "AGENTTYPE-db","CHANNELS-csv", "CHANNELS-db", "ADDONTYPE-csv", "ADDONTYPE-db", "DISCREPANCY" }); 
+
+				fname.add(outFilePath);
+				logger.info("Calling executeNormCompare() method...");
+				objNormalizedCamp.executeNormCompare(objConfig.getNcInputpath(), outFilePath + "\\Nomalized-campaign-audit-" + timeStamp + ".csv", "|");
+				mailBody.append("<br><br>Material impacts for Normalized campaign Audit:<br><br>" + htmlMailBodyGenerator(materialImpactsForMail.get(objNormalizedCamp.getClass().getSimpleName()), objNormalizedCamp.getClass().getSimpleName()));
+				logger.info("Out of executeNormCompare() method.");
+			}
+			else
+				logger.error("Cannot execute Normalized campaign audit, missing \"NORMALIZED_CAMPAIGN_INPUT_PATH\" key in resources/config file.");
+
+		}
+
+
+		if(objConfig.getRunOfferCampEndDateAudit() != null) {
+
+			logger.info("\n\n------------------------------------------------------------------------------------\nACTIVE_OFFER_CAMPAIGN_END_DATE_CHECK_AUDIT Utility\n------------------------------------------------------------------------------------");
+
+
+			PlmActiveOfferCampEndDateAudit objOfferCampEndDateAudit = new PlmActiveOfferCampEndDateAudit();
+			csvFileHeaders.put(objOfferCampEndDateAudit.getClass().getSimpleName(), new String[] { "EXTERNAL_ID", "OFFER_ID", "SITE_ID", "OFFER_NAME", "SALES_ADVICE", "OFFER_START_DATE", "DISCOUNT_START_DATE", "OFFER_END_DATE", "DISCOUNT_END_DATE", "DISCOUNT_ID","DISCOUNT_CODE", "DISTRO_PREFERENCE", "STATUS", "CREATED_DATE", "PROJECT_CODE", "INTAKE_NAME", "INTAKE_DESCRIPTION" });
+
+			fname.add(outFilePath);
+			logger.info("Calling compareEndDates() method...");
+			objOfferCampEndDateAudit.compareEndDates(objConfig.getOfferCampEndDateIgnoreIntakes(), outFilePath + "\\ACTIVE_OFFER_CAMPAIGN_END_DATE_AUDIT-" + timeStamp + ".csv" , objConfig.getOfferCampEndDateIgnoreKeywords(), objConfig.getFutureWindow());
+			mailBody.append("<br><br>Material impacts for Offer-campaign End Date Audit:<br><br>" + htmlMailBodyGenerator(materialImpactsForMail.get(objOfferCampEndDateAudit.getClass().getSimpleName()), objOfferCampEndDateAudit.getClass().getSimpleName()));
+			logger.info("Out of compareEndDates() method.");
+
+		}
+
+		if(objConfig.getRunOfferCampSiteAudit() != null) {
+
+			logger.info("\n\n------------------------------------------------------------------------------------\nACTIVE_OFFER_CAMPAIGN_SITE_CHECK_AUDIT Utility\n------------------------------------------------------------------------------------");
+
+			PlmActiveOfferCampSiteAudit objOfferCampSiteAudit = new PlmActiveOfferCampSiteAudit();
+			csvFileHeaders.put(objOfferCampSiteAudit.getClass().getSimpleName(), new String[] { "INTAKE_REQUEST", "OFFER_ID", "OFFER_NAME", "SALES_ADVICE", "DISTRO_PREFERENCE", "DISCOUNT_ID","DISCOUNT_CODE", "DISCOUNT_SITE_ID", "OFFER_SITE_ID", "CORRECTIVE_ACTION" }); 
+
+
+			fname.add(outFilePath);
+			logger.info("Calling compareSites() method...");
+			objOfferCampSiteAudit.compareSites(objConfig.getOfferCampSiteIgnoreIntakes(), "", outFilePath + "\\ACTIVE_OFFER_CAMPAIGN_SITE_CHECK_AUDIT-" + timeStamp + ".csv", objConfig.getOfferCampSiteIgnoreKeywords());
+			mailBody.append("<br><br>Material impacts for Offer-campaign Site Audit:<br><br>" + htmlMailBodyGenerator(materialImpactsForMail.get(objOfferCampSiteAudit.getClass().getSimpleName()), objOfferCampSiteAudit.getClass().getSimpleName()));
+			logger.info("Out of compareSites() method.");
+
+		}
+
+
+
+		if(objConfig.getRunPlmPpAudit() != null) {
+
+			logger.info("\n\n------------------------------------------------------------------------------------\nACTIVE_OFFER_PLM_PINPOINT_AUDIT Utility\n------------------------------------------------------------------------------------");
+			PlmPinpointAudit objPlmPpAudit = new PlmPinpointAudit();
+
+			fname.add(outFilePath);
+			logger.info("Calling executeAudit() method...");
+			objPlmPpAudit.executePlmPpAudit(objConfig.getPlmPpColsToCompare(), objConfig.getPlmPpColsToView() , objConfig.getFutureWindow(), outFilePath + "\\Plm_Pinpoint_Offer_Audit-" + timeStamp + ".csv");
+			mailBody.append("<br><br>Material impacts for PLM-PP Orphans Audit:<br><br>" + htmlMailBodyGenerator(materialImpactsForMail.get(objPlmPpAudit.getClass().getSimpleName()), objPlmPpAudit.getClass().getSimpleName()));
+			logger.info("Out of executeAudit() method.");
+
+		}
+
+
+
+		//model.addAttribute("MaterialImpacts", materialImpactsForMail);
+		//model.addAttribute("Headers", csvFileHeaders);
 
 		if(!errorsLst.isEmpty())
 			mailBody.append("<br><br><br>Error/s encountered:<br><br>" + htmlMailBodyGenerator(errorsLst, "Errors"));
 
 		StringBuilder toEmail = new StringBuilder();
 		//email audit reports
-		if(objConfig.getTriggerMail() != null && !objConfig.getRecipientsList().equals("")) {
+		if(objConfig.getTriggerMail() != null && objConfig.getRecipientsList() != null) {
 
 			toEmail.append(objConfig.getRecipientsList()); // can be any email id 
 
@@ -161,5 +233,14 @@ public class PlmController {
 		bodyText.append("</table>"); 
 		return bodyText.toString();
 	} 
+
+	@RequestMapping(value = "/downloadCSV")
+	public void downloadCSV(HttpServletResponse response) throws IOException {
+
+		response.setContentType("text/csv");
+		String reportName = "C:\\Users\\B45752\\git\\PLM-Utility-Web-App\\MISSING_OFFERS_FOR_ACTIVE_CAMPAIGNS_AUDIT-20200326093243.csv";
+		response.setHeader("Content-disposition", "attachment;filename="+reportName);
+	}
+
 }
 

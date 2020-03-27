@@ -6,23 +6,22 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" href="/resources/static/css/style.css">
-<script type="text/javascript" src="/resources/static/js/app.js"></script>
+<link rel="stylesheet" href="/resources/css/style.css">
+<script type="text/javascript" src="/resources/js/app.js"></script>
 <title>PLM Audits</title>
 </head>
-<body>
+<body class="form">
 	<h1>PLM Audits</h1>
 	<hr>
 	<div class="form">
 		<form:form method="POST" action="results" modelAttribute="config"
-			onsubmit="return validate()">
-			<br>
-			<br>
+			onsubmitonsu="return validate()">
 			<table>
 				<tr>
 					<td><label id="ncInputPath">Normalized Campaign Input
 							path </label></td>
-					<td><form:textarea path="ncInputpath" rows="3" cols="50"></form:textarea></td>
+					<td><form:textarea path="ncInputpath" name="ncInputpath"
+							rows="3" cols="50" required="required"></form:textarea></td>
 				</tr>
 				<tr>
 					<td><label id="futureWindow">Material Impact future
@@ -34,26 +33,70 @@
 			<br>
 			<fieldset>
 				<legend>Audits to run?</legend>
-				<form:checkbox path="runIcomsAudit" value="YES" />
-				Icoms-Plm end date audit
+				<input type="checkbox" name="select-all" id="select-all"
+					onclick="selectAll()" /> <br>
+				<form:checkbox path="runIcomsAudit" name="runIcomsAudit" value="YES" />
+				Icoms-Plm end date audit <br>
 				<form:checkbox path="runMissingOffersAudit" value="YES" />
-				Missing offers audit
+				Missing offers audit <br>
 				<form:checkbox path="runNormalizedCampAudit" value="YES" />
 				Normalized campaign audit <br>
-				<br>
-				<br>
+				<form:checkbox path="runOfferCampEndDateAudit" value="YES" />
+				Active Plm offer-campaign end date audit<br>
+				<form:checkbox path="runOfferCampSiteAudit" value="YES" />
+				Active Plm offer-campaign site audit<br>
+				<form:checkbox path="runPlmPpAudit" value="YES" />
+				Plm-PP offer audit <br>
+
+
+				<table>
+					<tr>
+						<td><label id="ncInputPath">Plm offer-campaign End
+								date audit - Intakes to ignore</label></td>
+						<td><form:textarea path="offerCampEndDateIgnoreIntakes"
+								name="offerCampEndDateIgnoreIntakes" rows="3" cols="50"></form:textarea></td>
+					</tr>
+					<tr>
+						<td><label id="ncInputPath">Plm offer-campaign End
+								date audit - Keywords to ignore</label></td>
+						<td><form:textarea path="offerCampEndDateIgnoreKeywords"
+								name="offerCampEndDateIgnoreKeywords" rows="3" cols="50"></form:textarea></td>
+					</tr>
+					<tr>
+						<td><label id="ncInputPath">Plm offer-campaign site
+								audit - Intakes to ignore</label></td>
+						<td><form:textarea path="offerCampSiteIgnoreIntakes"
+								name="offerCampSiteIgnoreIntakes" rows="3" cols="50"></form:textarea></td>
+					</tr>
+					<tr>
+						<td><label id="ncInputPath">Plm offer-campaign site
+								audit - Keywords to ignore</label></td>
+						<td><form:textarea path="offerCampSiteIgnoreKeywords"
+								name="offerCampSiteIgnoreKeywords" rows="3" cols="50"></form:textarea></td>
+					</tr>
+					<tr>
+						<td><label id="ncInputPath">Plm-PP Columns to compare</label></td>
+						<td><form:textarea path="plmPpColsToCompare"
+								name="plmPpColsToCompare" rows="3" cols="50"></form:textarea></td>
+					</tr>
+					<tr>
+						<td><label id="ncInputPath">Plm-PP Columns to view</label></td>
+						<td><form:textarea path="plmPpColsToView"
+								name="plmPpColsToView" rows="3" cols="50"></form:textarea></td>
+					</tr>
+				</table>
+
 			</fieldset>
-			<br>
 			<br>
 			<fieldset>
 				<legend>Mail</legend>
 				<form:checkbox path="triggerMail" value="YES" />
-				TriggerMail?
-				<br>
-				<label id="recipientsList">Mailing Recipients List</label>
+				TriggerMail? <br> <label id="recipientsList">Mailing
+					Recipients List</label>
 				<form:textarea path="recipientsList" rows="3" cols="50"></form:textarea>
 			</fieldset>
-			<br><br><br>
+			<br>
+
 			<input type="submit" value="Run Audits" />
 		</form:form>
 	</div>

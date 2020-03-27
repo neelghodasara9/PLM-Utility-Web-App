@@ -1,8 +1,8 @@
-.form{
-	background-color:#efefef;
-	width:800px;
-	height:500px;
+.form {
+	background-color: #efefef;
+	width: auto;
+	height: auto;
+	margin: auto;
 	border-radius: 7px;
 	padding: 20px;
-	
 }
